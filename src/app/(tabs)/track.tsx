@@ -198,6 +198,7 @@ export default function TrackScreen() {
             urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
             maximumZ={19}
             tileSize={256}
+            zIndex={-1}
           />
           {/* Breadcrumb path */}
           {routeCoordinates.length > 1 && (
