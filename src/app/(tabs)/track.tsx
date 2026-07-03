@@ -190,8 +190,8 @@ export default function TrackScreen() {
             latitudeDelta: 0.005,
             longitudeDelta: 0.005
           }}
-          showsUserLocation={!isSimulating}
-          showsMyLocationButton={true}
+          showsUserLocation={!isSimulating && currentLocation !== null}
+          showsMyLocationButton={!isSimulating && currentLocation !== null}
         >
           {/* Breadcrumb path */}
           {routeCoordinates.length > 1 && (
