@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import MapView, { Polyline, Marker } from 'react-native-maps';
+import MapView, { Polyline, Marker, UrlTile } from 'react-native-maps';
 import { Colors } from '../../constants/theme';
 import { Activity, storageService } from '../../services/storageService';
 import { db, isMock } from '../../config/firebase';
@@ -324,8 +324,14 @@ export default function ActivityDetailScreen() {
             <View style={styles.mapContainer}>
               <MapView
                 style={styles.map}
+                mapType="none"
                 initialRegion={mapRegion}
               >
+                <UrlTile
+                  urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+                  maximumZ={19}
+                  tileSize={256}
+                />
                 <Polyline
                   coordinates={activity.route}
                   strokeWidth={4}
@@ -455,6 +461,7 @@ export default function ActivityDetailScreen() {
                     <View style={StyleSheet.absoluteFill}>
                       <MapView
                         style={styles.shareMap}
+                        mapType="none"
                         initialRegion={mapRegion}
                         scrollEnabled={false}
                         zoomEnabled={false}
@@ -463,6 +470,11 @@ export default function ActivityDetailScreen() {
                         cacheEnabled={true}
                         customMapStyle={VINTAGE_MAP_STYLE}
                       >
+                        <UrlTile
+                          urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+                          maximumZ={19}
+                          tileSize={256}
+                        />
                         <Polyline
                           coordinates={activity.route}
                           strokeWidth={6}
@@ -560,6 +572,7 @@ export default function ActivityDetailScreen() {
                     <View style={StyleSheet.absoluteFill}>
                       <MapView
                         style={styles.shareMap}
+                        mapType="none"
                         initialRegion={mapRegion}
                         scrollEnabled={false}
                         zoomEnabled={false}
@@ -568,6 +581,11 @@ export default function ActivityDetailScreen() {
                         cacheEnabled={true}
                         customMapStyle={VINTAGE_MAP_STYLE}
                       >
+                        <UrlTile
+                          urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+                          maximumZ={19}
+                          tileSize={256}
+                        />
                         <Polyline
                           coordinates={activity.route}
                           strokeWidth={5}
@@ -652,6 +670,7 @@ export default function ActivityDetailScreen() {
                 <View style={StyleSheet.absoluteFill}>
                   <MapView
                     style={styles.shareMap}
+                    mapType="none"
                     initialRegion={mapRegion}
                     scrollEnabled={false}
                     zoomEnabled={false}
@@ -660,6 +679,11 @@ export default function ActivityDetailScreen() {
                     cacheEnabled={true}
                     customMapStyle={VINTAGE_MAP_STYLE}
                   >
+                    <UrlTile
+                      urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+                      maximumZ={19}
+                      tileSize={256}
+                    />
                     <Polyline
                       coordinates={activity.route}
                       strokeWidth={6} // Thicker trail for download

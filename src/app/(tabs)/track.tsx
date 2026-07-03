@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Polyline, Marker } from 'react-native-maps';
+import MapView, { Polyline, Marker, UrlTile } from 'react-native-maps';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/theme';
 import { useTracking } from '../../hooks/useTracking';
@@ -184,6 +184,7 @@ export default function TrackScreen() {
         <MapView
           ref={mapRef}
           style={styles.map}
+          mapType="none"
           initialRegion={{
             latitude: currentLocation?.latitude || -6.2088,
             longitude: currentLocation?.longitude || 106.8456,
@@ -193,6 +194,11 @@ export default function TrackScreen() {
           showsUserLocation={!isSimulating && currentLocation !== null}
           showsMyLocationButton={!isSimulating && currentLocation !== null}
         >
+          <UrlTile
+            urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+            maximumZ={19}
+            tileSize={256}
+          />
           {/* Breadcrumb path */}
           {routeCoordinates.length > 1 && (
             <Polyline
