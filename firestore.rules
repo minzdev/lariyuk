@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Security rules for the 'activities' collection
+    match /activities/{activityId} {
+      
+      // Allow creation if the user is logged in and the activity document's userId matches their UID
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Allow reading, updating, or deleting only if the logged-in user owns the activity document
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}
