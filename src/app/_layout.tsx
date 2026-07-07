@@ -6,6 +6,7 @@ import { ThemeProvider, DefaultTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '../constants/theme';
 import { subscribeToAuth } from '../config/firebase';
+import { DialogProvider } from '../context/DialogContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -56,12 +57,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider value={DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="login" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="signup" />
-          <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="activity/[id]" options={{ presentation: 'card', headerShown: false }} />
-        </Stack>
+        <DialogProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="login" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="signup" />
+            <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="activity/[id]" options={{ presentation: 'card', headerShown: false }} />
+          </Stack>
+        </DialogProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -10,22 +10,23 @@ import {
   Platform, 
   ScrollView,
   ActivityIndicator,
-  Alert
 } from 'react-native';
 import { router } from 'expo-router';
 import { Colors } from '../constants/theme';
 import { loginUser } from '../config/firebase';
 import { Ionicons } from '@expo/vector-icons';
+import { useDialogs } from '../context/DialogContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [secureText, setSecureText] = useState(true);
+  const { showToast } = useDialogs();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Silakan isi email dan password Anda.');
+      showToast('Input Tidak Lengkap', 'Silakan isi email dan password Anda.', 'warning');
       return;
     }
 
@@ -37,7 +38,7 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Gagal Masuk', error.message || 'Email atau password salah.');
+      showToast('Gagal Masuk', error.message || 'Email atau password salah.', 'error');
     } finally {
       setLoading(false);
     }

@@ -10,7 +10,6 @@ import {
   Platform, 
   ScrollView,
   ActivityIndicator,
-  Alert
 } from 'react-native';
 import { router } from 'expo-router';
 import { Colors } from '../constants/theme';
@@ -18,6 +17,7 @@ import { auth, isMock, registerUser } from '../config/firebase';
 import { updateProfile } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { useDialogs } from '../context/DialogContext';
 
 export default function SignupScreen() {
   const [name, setName] = useState('');
@@ -26,20 +26,21 @@ export default function SignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [secureText, setSecureText] = useState(true);
+  const { showToast } = useDialogs();
 
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Silakan isi semua kolom formulir.');
+      showToast('Formulir Kosong', 'Silakan isi semua kolom formulir.', 'warning');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Konfirmasi kata sandi tidak cocok.');
+      showToast('Kata Sandi Tidak Cocok', 'Konfirmasi kata sandi tidak cocok.', 'warning');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Kata sandi minimal harus 6 karakter.');
+      showToast('Kata Sandi Lemah', 'Kata sandi minimal harus 6 karakter.', 'warning');
       return;
     }
 
@@ -65,12 +66,11 @@ export default function SignupScreen() {
         await AsyncStorage.setItem('@lariyuk_mock_user', JSON.stringify(mockUser));
       }
 
-      Alert.alert('Berhasil', 'Akun Anda berhasil dibuat!', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)') }
-      ]);
+      showToast('Berhasil', 'Akun Anda berhasil dibuat!', 'success');
+      router.replace('/(tabs)');
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Gagal Daftar', error.message || 'Terjadi kesalahan saat membuat akun.');
+      showToast('Gagal Daftar', error.message || 'Terjadi kesalahan saat membuat akun.', 'error');
     } finally {
       setLoading(false);
     }

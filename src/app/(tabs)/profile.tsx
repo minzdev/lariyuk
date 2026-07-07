@@ -5,7 +5,6 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity,
-  Alert,
   ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +13,7 @@ import { Colors } from '../../constants/theme';
 import { auth, logoutUser, isMock } from '../../config/firebase';
 import { storageService, Activity } from '../../services/storageService';
 import { Ionicons } from '@expo/vector-icons';
+import { useDialogs } from '../../context/DialogContext';
 
 interface Badge {
   id: string;
@@ -27,6 +27,7 @@ export default function ProfileScreen() {
   const [weeklyGoal, setWeeklyGoal] = useState(20);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showToast, showConfirm } = useDialogs();
 
   const loadProfileData = async () => {
     try {
@@ -54,24 +55,21 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert(
+    showConfirm(
       'Keluar Akun',
       'Apakah Anda yakin ingin keluar dari aplikasi Lari Yuk?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Keluar', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logoutUser();
-              router.replace('/login');
-            } catch {
-              Alert.alert('Error', 'Gagal melakukan logout.');
-            }
-          }
+      async () => {
+        try {
+          await logoutUser();
+          router.replace('/login');
+          showToast('Sampai Jumpa', 'Anda telah berhasil keluar dari akun.', 'success');
+        } catch {
+          showToast('Error', 'Gagal melakukan logout.', 'error');
         }
-      ]
+      },
+      'Keluar',
+      'Batal',
+      'danger'
     );
   };
 

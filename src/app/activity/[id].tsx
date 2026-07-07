@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Modal,
   Share,
   Image
 } from 'react-native';
+import { useDialogs } from '../../context/DialogContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Polyline, Marker, UrlTile } from 'react-native-maps';
@@ -93,6 +93,7 @@ export default function ActivityDetailScreen() {
   const viewRef = useRef<any>(null);
   const [sharingImage, setSharingImage] = useState(false);
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
+  const { showToast, showConfirm } = useDialogs();
 
   const handleShareImage = async () => {
     if (!viewRef.current) return;
@@ -109,11 +110,11 @@ export default function ActivityDetailScreen() {
           dialogTitle: 'Bagikan Pencapaian Lari Yuk',
         });
       } else {
-        Alert.alert('Gagal', 'Fitur berbagi tidak didukung di perangkat ini.');
+        showToast('Gagal', 'Fitur berbagi tidak didukung di perangkat ini.', 'error');
       }
     } catch (error) {
       console.error("Error capturing and sharing image:", error);
-      Alert.alert('Gagal', 'Terjadi kesalahan saat memproses gambar pencapaian.');
+      showToast('Gagal', 'Terjadi kesalahan saat memproses gambar pencapaian.', 'error');
     } finally {
       setSharingImage(false);
     }
@@ -147,7 +148,7 @@ export default function ActivityDetailScreen() {
         setActivity(found);
         setNotes(found.notes || '');
       } else {
-        Alert.alert('Error', 'Aktivitas tidak ditemukan.');
+        showToast('Error', 'Aktivitas tidak ditemukan.', 'error');
         router.back();
       }
     } catch (err) {
@@ -189,57 +190,52 @@ export default function ActivityDetailScreen() {
       }
 
       setActivity(prev => prev ? { ...prev, notes } : null);
-      Alert.alert('Sukses', 'Catatan aktivitas berhasil disimpan.');
+      showToast('Sukses', 'Catatan aktivitas berhasil disimpan.', 'success');
     } catch (err) {
       console.error(err);
-      Alert.alert('Gagal', 'Terjadi kesalahan saat menyimpan catatan.');
+      showToast('Gagal', 'Terjadi kesalahan saat menyimpan catatan.', 'error');
     } finally {
       setSavingNotes(false);
     }
   };
 
   const handleDeleteActivity = () => {
-    Alert.alert(
+    showConfirm(
       'Hapus Aktivitas',
       'Apakah Anda yakin ingin menghapus aktivitas olahraga ini secara permanen?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Hapus', 
-          style: 'destructive',
-          onPress: async () => {
-            if (!activity) return;
+      async () => {
+        if (!activity) return;
+        try {
+          // 1. Delete from AsyncStorage
+          const rawData = await AsyncStorage.getItem('@lariyuk_activities');
+          const allActivities = rawData ? JSON.parse(rawData) : [];
+          const updatedAll = allActivities.filter((a: any) => a.id !== activity.id);
+          await AsyncStorage.setItem('@lariyuk_activities', JSON.stringify(updatedAll));
+
+          // 2. Delete from Firestore if online & synced
+          if (!isMock && activity.synced) {
             try {
-              // 1. Delete from AsyncStorage
-              const rawData = await AsyncStorage.getItem('@lariyuk_activities');
-              const allActivities = rawData ? JSON.parse(rawData) : [];
-              const updatedAll = allActivities.filter((a: any) => a.id !== activity.id);
-              await AsyncStorage.setItem('@lariyuk_activities', JSON.stringify(updatedAll));
-
-              // 2. Delete from Firestore if online & synced
-              if (!isMock && activity.synced) {
-                try {
-                  const q = query(collection(db, 'activities'), where('id', '==', activity.id));
-                  const snapshot = await getDocs(q);
-                  if (!snapshot.empty) {
-                    const fbDocId = snapshot.docs[0].id;
-                    await deleteDoc(doc(db, 'activities', fbDocId));
-                  }
-                } catch (firebaseErr) {
-                  console.warn("Could not delete from Firestore (offline).", firebaseErr);
-                }
+              const q = query(collection(db, 'activities'), where('id', '==', activity.id));
+              const snapshot = await getDocs(q);
+              if (!snapshot.empty) {
+                const fbDocId = snapshot.docs[0].id;
+                await deleteDoc(doc(db, 'activities', fbDocId));
               }
-
-              Alert.alert('Sukses', 'Aktivitas berhasil dihapus.', [
-                { text: 'OK', onPress: () => router.back() }
-              ]);
-            } catch (err) {
-              console.error(err);
-              Alert.alert('Gagal', 'Terjadi kesalahan saat menghapus aktivitas.');
+            } catch (firebaseErr) {
+              console.warn("Could not delete from Firestore (offline).", firebaseErr);
             }
           }
+
+          showToast('Sukses', 'Aktivitas berhasil dihapus.', 'success');
+          router.back();
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal', 'Terjadi kesalahan saat menghapus aktivitas.', 'error');
         }
-      ]
+      },
+      'Hapus',
+      'Batal',
+      'danger'
     );
   };
 

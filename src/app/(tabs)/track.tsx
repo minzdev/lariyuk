@@ -5,7 +5,7 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   Switch, 
-  Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Polyline, Marker, UrlTile } from 'react-native-maps';
@@ -15,9 +15,12 @@ import { useTracking } from '../../hooks/useTracking';
 import LockSlider from '../../components/LockSlider';
 import { formatDuration, formatPace } from '../../components/ActivityCard';
 import { Ionicons } from '@expo/vector-icons';
+import { useDialogs } from '../../context/DialogContext';
 
 export default function TrackScreen() {
   const router = useRouter();
+  const { showToast, showConfirm } = useDialogs();
+  const [showFinishModal, setShowFinishModal] = useState(false);
   const {
     currentLocation,
     routeCoordinates,
@@ -65,56 +68,17 @@ export default function TrackScreen() {
   };
 
   const handleStop = () => {
-    Alert.alert(
-      'Selesaikan Aktivitas?',
-      'Apakah Anda ingin menyimpan aktivitas olahraga ini?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Buang', 
-          style: 'destructive',
-          onPress: () => {
-            resetTracking();
-            setIsLocked(false);
-          }
-        },
-        { 
-          text: 'Simpan & Selesai', 
-          onPress: async () => {
-            // Ask user for activity type first
-            Alert.alert(
-              'Pilih Jenis Aktivitas',
-              'Apa jenis olahraga yang Anda lakukan?',
-              [
-                { text: 'Jalan Santai', onPress: () => saveAndNavigate('walk') },
-                { text: 'Lari', onPress: () => saveAndNavigate('run') },
-                { text: 'Bersepeda', onPress: () => saveAndNavigate('bike') },
-              ]
-            );
-          } 
-        }
-      ]
-    );
+    setShowFinishModal(true);
   };
 
   const saveAndNavigate = async (type: 'run' | 'walk' | 'bike') => {
     const savedActivity = await stopTracking(type);
     setIsLocked(false);
     if (savedActivity) {
-      Alert.alert(
-        'Simpan Berhasil',
-        'Aktivitas olahraga Anda telah berhasil disimpan!',
-        [
-          { 
-            text: 'OK', 
-            onPress: () => {
-              router.replace('/(tabs)/activities');
-            } 
-          }
-        ]
-      );
+      showToast('Simpan Berhasil', 'Aktivitas olahraga Anda telah berhasil disimpan!', 'success');
+      router.replace('/(tabs)/activities');
     } else {
-      Alert.alert('Info', 'Jarak terlalu pendek untuk disimpan.');
+      showToast('Info', 'Jarak terlalu pendek untuk disimpan.', 'warning');
     }
   };
 
@@ -269,6 +233,91 @@ export default function TrackScreen() {
           </View>
         )}
       </View>
+
+      {/* Custom Modern Finish Activity Modal */}
+      <Modal
+        visible={showFinishModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFinishModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.finishModalContent}>
+            <View style={styles.finishModalHeader}>
+              <Text style={styles.finishModalTitle}>Selesaikan Latihan</Text>
+              <Text style={styles.finishModalDesc}>Pilih jenis olahraga Anda untuk menyimpan statistik latihan secara permanen.</Text>
+            </View>
+
+            {/* Selection Buttons */}
+            <TouchableOpacity 
+              style={[styles.finishOptionBtn, { backgroundColor: '#FF5722' }]} 
+              onPress={() => {
+                setShowFinishModal(false);
+                saveAndNavigate('run');
+              }}
+            >
+              <Ionicons name="walk" size={24} color="#FFF" style={{ marginRight: 12 }} />
+              <Text style={styles.finishOptionText}>Simpan sebagai Lari</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.finishOptionBtn, { backgroundColor: '#007AFF' }]} 
+              onPress={() => {
+                setShowFinishModal(false);
+                saveAndNavigate('walk');
+              }}
+            >
+              <Ionicons name="footsteps" size={24} color="#FFF" style={{ marginRight: 12 }} />
+              <Text style={styles.finishOptionText}>Simpan sebagai Jalan Santai</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.finishOptionBtn, { backgroundColor: '#5856D6' }]} 
+              onPress={() => {
+                setShowFinishModal(false);
+                saveAndNavigate('bike');
+              }}
+            >
+              <Ionicons name="bicycle" size={24} color="#FFF" style={{ marginRight: 12 }} />
+              <Text style={styles.finishOptionText}>Simpan sebagai Bersepeda</Text>
+            </TouchableOpacity>
+
+            <View style={styles.finishDivider} />
+
+            {/* Discard & Cancel row */}
+            <View style={styles.finishActionRow}>
+              <TouchableOpacity 
+                style={styles.discardBtn} 
+                onPress={() => {
+                  setShowFinishModal(false);
+                  showConfirm(
+                    'Buang Latihan',
+                    'Apakah Anda yakin ingin membuang latihan saat ini? Data latihan tidak akan disimpan.',
+                    () => {
+                      resetTracking();
+                      setIsLocked(false);
+                      showToast('Dibuang', 'Aktivitas olahraga telah dibuang.', 'info');
+                    },
+                    'Ya, Buang',
+                    'Batal',
+                    'danger'
+                  );
+                }}
+              >
+                <Ionicons name="trash-outline" size={18} color="#FF3B30" style={{ marginRight: 6 }} />
+                <Text style={styles.discardBtnText}>Buang</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.cancelFinishBtn} 
+                onPress={() => setShowFinishModal(false)}
+              >
+                <Text style={styles.cancelFinishText}>Lanjutkan</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -462,5 +511,96 @@ const styles = StyleSheet.create({
   stopBtn: {
     backgroundColor: '#FFEFEB',
     borderColor: Colors.light.primary + '30',
+  },
+
+  // Finish Modal Styles
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(12, 12, 18, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  finishModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 300,
+    alignItems: 'stretch',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  finishModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  finishModalTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#1C1C1E',
+    textAlign: 'center',
+  },
+  finishModalDesc: {
+    fontSize: 13,
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  finishOptionBtn: {
+    height: 52,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  finishOptionText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  finishDivider: {
+    height: 1,
+    backgroundColor: '#F2F2F7',
+    marginVertical: 12,
+  },
+  finishActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  discardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  discardBtnText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  cancelFinishBtn: {
+    backgroundColor: '#F2F2F7',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  cancelFinishText: {
+    color: '#8E8E93',
+    fontSize: 13,
+    fontWeight: 'bold',
   },
 });
