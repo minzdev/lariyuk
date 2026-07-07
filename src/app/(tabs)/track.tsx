@@ -184,7 +184,6 @@ export default function TrackScreen() {
         <MapView
           ref={mapRef}
           style={styles.map}
-          mapType="none"
           initialRegion={{
             latitude: currentLocation?.latitude || -6.2088,
             longitude: currentLocation?.longitude || 106.8456,
@@ -194,12 +193,6 @@ export default function TrackScreen() {
           showsUserLocation={!isSimulating && currentLocation !== null}
           showsMyLocationButton={!isSimulating && currentLocation !== null}
         >
-          <UrlTile
-            urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-            maximumZ={19}
-            tileSize={256}
-            zIndex={-1}
-          />
           {/* Breadcrumb path */}
           {routeCoordinates.length > 1 && (
             <Polyline

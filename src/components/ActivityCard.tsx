@@ -126,7 +126,6 @@ export default function ActivityCard({ activity, onPress }: ActivityCardProps) {
         <View style={styles.mapContainer} pointerEvents="none">
           <MapView
             style={styles.map}
-            mapType="none"
             initialRegion={mapRegion}
             liteMode={true}
             scrollEnabled={false}
@@ -134,12 +133,6 @@ export default function ActivityCard({ activity, onPress }: ActivityCardProps) {
             rotateEnabled={false}
             pitchEnabled={false}
           >
-            <UrlTile
-              urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-              maximumZ={19}
-              tileSize={256}
-              zIndex={-1}
-            />
             <Polyline
               coordinates={activity.route}
               strokeWidth={3}
