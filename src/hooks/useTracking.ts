@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
+import * as Speech from 'expo-speech';
 import { LatLng, Activity, storageService } from '../services/storageService';
 
 // Haversine formula to calculate distance in km between two points
@@ -42,6 +43,39 @@ export const useTracking = () => {
   const routeRef = useRef<LatLng[]>([]);
   const lastLocationRef = useRef<LatLng | null>(null);
   const distanceRef = useRef<number>(0);
+  const lastAnnouncedDistanceRef = useRef<number>(0);
+  const durationRef = useRef<number>(0);
+  const paceRef = useRef<number>(0);
+
+  const checkAndSpeakProgress = (currentDistance: number) => {
+    const currentKm = Math.floor(currentDistance);
+    if (currentKm > lastAnnouncedDistanceRef.current) {
+      lastAnnouncedDistanceRef.current = currentKm;
+      
+      const totalSeconds = durationRef.current;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      
+      const currentPace = paceRef.current;
+      const paceMinutes = Math.floor(currentPace / 60);
+      const paceSeconds = currentPace % 60;
+
+      const speechText = 
+        `Jarak ${currentKm} kilometer. ` +
+        `Waktu ${minutes} menit ${seconds} detik. ` +
+        `Kecepatan rata-rata ${paceMinutes} menit ${paceSeconds} detik per kilometer.`;
+
+      try {
+        Speech.speak(speechText, {
+          language: 'id-ID',
+          pitch: 1.0,
+          rate: 0.95
+        });
+      } catch (err) {
+        console.warn("Failed to play audio coach prompt:", err);
+      }
+    }
+  };
 
   // Request foreground location permissions on mount
   useEffect(() => {
@@ -150,6 +184,7 @@ export const useTracking = () => {
 
         setRouteCoordinates((prev) => [...prev, newPoint]);
         lastLocationRef.current = newPoint;
+        checkAndSpeakProgress(newDistance);
       }
     } else if (isTracking) {
       setRouteCoordinates([newPoint]);
@@ -187,6 +222,9 @@ export const useTracking = () => {
     setCalories(0);
     setGpsAccuracy(5);
     distanceRef.current = 0;
+    lastAnnouncedDistanceRef.current = 0;
+    durationRef.current = 0;
+    paceRef.current = 0;
     
     const initialPoint = startLoc;
     setRouteCoordinates([initialPoint]);
@@ -197,10 +235,15 @@ export const useTracking = () => {
     timerRef.current = setInterval(() => {
       setDuration((prev) => {
         const nextDuration = prev + 1;
+        durationRef.current = nextDuration;
+        
         // Recalculate Pace: duration / distance
         const currentDistance = distanceRef.current;
         if (currentDistance > 0.01) {
-          setPace(Math.round(nextDuration / currentDistance));
+          const calculatedPace = Math.round(nextDuration / currentDistance);
+          setPace(calculatedPace);
+          paceRef.current = calculatedPace;
+          
           // Est. Calories: Weight (~70kg) * distance
           setCalories(Math.round(75 * currentDistance));
         }
@@ -256,6 +299,7 @@ export const useTracking = () => {
         const newDistance = distanceRef.current + delta;
         distanceRef.current = newDistance;
         setDistance(newDistance);
+        checkAndSpeakProgress(newDistance);
       }
 
       setRouteCoordinates((prev) => [...prev, simLoc]);
@@ -331,6 +375,9 @@ export const useTracking = () => {
     setCalories(0);
     setRouteCoordinates([]);
     setGpsAccuracy(null);
+    lastAnnouncedDistanceRef.current = 0;
+    durationRef.current = 0;
+    paceRef.current = 0;
   };
 
   // Calculate GPS Signal Status
