@@ -1,7 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
 import * as Speech from 'expo-speech';
 import { LatLng, Activity, storageService } from '../services/storageService';
+
+const LOCATION_TASK_NAME = 'background-location-task';
+
+TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+  if (error) {
+    console.error("Background location task error:", error);
+    return;
+  }
+  if (data) {
+    const { locations } = data as { locations: Location.LocationObject[] };
+    if (locations && locations.length > 0) {
+      DeviceEventEmitter.emit('background-location-update', locations[0]);
+    }
+  }
+});
 
 // Haversine formula to calculate distance in km between two points
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -99,7 +116,12 @@ export const useTracking = () => {
       }
     })();
 
+    const subscription = DeviceEventEmitter.addListener('background-location-update', (location) => {
+      handleLocationUpdate(location);
+    });
+
     return () => {
+      subscription.remove();
       stopLocationWatcher();
       clearTimer();
       clearSimulation();
@@ -117,6 +139,7 @@ export const useTracking = () => {
       locationSubscription.current.remove();
       locationSubscription.current = null;
     }
+    Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME).catch(() => {});
   }
 
   function clearTimer() {
@@ -149,6 +172,29 @@ export const useTracking = () => {
       );
     } catch (err) {
       console.error("Error watching position:", err);
+    }
+  };
+
+  // Start background location updates (persists in background/lock screen)
+  const startBackgroundLocationWatcher = async () => {
+    try {
+      const { status } = await Location.requestBackgroundPermissionsAsync();
+      if (status === 'granted') {
+        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 2000,
+          distanceInterval: 3,
+          foregroundService: {
+            notificationTitle: "Lari Yuk Melacak Latihan Anda",
+            notificationBody: "Aktivitas lari sedang direkam di latar belakang.",
+            notificationColor: "#FF5722"
+          }
+        });
+      } else {
+        console.warn("Background location permission not granted.");
+      }
+    } catch (err) {
+      console.error("Error starting background location updates:", err);
     }
   };
 
@@ -256,6 +302,7 @@ export const useTracking = () => {
       startSimulating(initialPoint);
     } else {
       await startLocationWatcher();
+      await startBackgroundLocationWatcher();
     }
   };
 
