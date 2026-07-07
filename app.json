@@ -8,7 +8,12 @@
     "scheme": "lariyuk",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,6 +25,9 @@
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
         "INTERNET"
       ],
       "config": {
@@ -42,6 +50,13 @@
           "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 150
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Izinkan Lari Yuk melacak lokasi Anda setiap saat untuk merekam rute lari saat HP dikunci atau di latar belakang.",
+          "isAndroidBackgroundLocationEnabled": true
         }
       ]
     ],
