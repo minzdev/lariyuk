@@ -460,7 +460,6 @@ export default function ActivityDetailScreen() {
                         zoomEnabled={false}
                         pitchEnabled={false}
                         rotateEnabled={false}
-                        cacheEnabled={true}
                         customMapStyle={VINTAGE_MAP_STYLE}
                       >
                         <Polyline
@@ -565,7 +564,6 @@ export default function ActivityDetailScreen() {
                         zoomEnabled={false}
                         pitchEnabled={false}
                         rotateEnabled={false}
-                        cacheEnabled={true}
                         customMapStyle={VINTAGE_MAP_STYLE}
                       >
                         <Polyline
@@ -657,7 +655,6 @@ export default function ActivityDetailScreen() {
                     zoomEnabled={false}
                     pitchEnabled={false}
                     rotateEnabled={false}
-                    cacheEnabled={true}
                     customMapStyle={VINTAGE_MAP_STYLE}
                   >
                     <Polyline
