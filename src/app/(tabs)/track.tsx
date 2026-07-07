@@ -114,10 +114,6 @@ export default function TrackScreen() {
             />
           </View>
         )}
-        
-        <TouchableOpacity style={styles.settingsBtn}>
-          <Ionicons name="settings-outline" size={22} color={Colors.light.text} />
-        </TouchableOpacity>
       </View>
 
       {/* Main Stats Display Panel */}
@@ -257,7 +253,7 @@ export default function TrackScreen() {
               }}
             >
               <Ionicons name="walk" size={24} color="#FFF" style={{ marginRight: 12 }} />
-              <Text style={styles.finishOptionText}>Simpan sebagai Lari</Text>
+              <Text style={styles.finishOptionText}>Simpan Lari</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -268,7 +264,7 @@ export default function TrackScreen() {
               }}
             >
               <Ionicons name="footsteps" size={24} color="#FFF" style={{ marginRight: 12 }} />
-              <Text style={styles.finishOptionText}>Simpan sebagai Jalan Santai</Text>
+              <Text style={styles.finishOptionText}>Simpan Jalan Santai</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -279,7 +275,7 @@ export default function TrackScreen() {
               }}
             >
               <Ionicons name="bicycle" size={24} color="#FFF" style={{ marginRight: 12 }} />
-              <Text style={styles.finishOptionText}>Simpan sebagai Bersepeda</Text>
+              <Text style={styles.finishOptionText}>Simpan Bersepeda</Text>
             </TouchableOpacity>
 
             <View style={styles.finishDivider} />
@@ -567,8 +563,9 @@ const styles = StyleSheet.create({
   },
   finishOptionText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
+    flexShrink: 1,
   },
   finishDivider: {
     height: 1,

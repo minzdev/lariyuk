@@ -15,14 +15,6 @@ import { storageService, Activity } from '../../services/storageService';
 import { Ionicons } from '@expo/vector-icons';
 import { useDialogs } from '../../context/DialogContext';
 
-interface Badge {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  unlocked: boolean;
-}
-
 export default function ProfileScreen() {
   const [weeklyGoal, setWeeklyGoal] = useState(20);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -73,58 +65,25 @@ export default function ProfileScreen() {
     );
   };
 
-  // Determine Badge unlocks
-  const getBadges = (): Badge[] => {
-    const hasRuns = activities.length > 0;
-    const has5K = activities.some(a => a.distance >= 5);
-    const has10K = activities.some(a => a.distance >= 10);
-    const hasEarlyBird = activities.some(a => {
-      const hr = new Date(a.createdAt).getHours();
-      return hr >= 4 && hr < 7; // morning between 4:00 and 6:59
+  const getWeeklyProgressDistance = (activitiesData: Activity[]) => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+    
+    const thisWeekActivities = activitiesData.filter(a => {
+      const actDate = new Date(a.createdAt);
+      return actDate >= monday && actDate <= today;
     });
-    const hasExplorer = activities.length >= 5;
-
-    return [
-      {
-        id: 'first_run',
-        title: 'Lari Pertama',
-        description: 'Selesaikan aktivitas olahraga pertama Anda',
-        icon: 'trophy',
-        unlocked: hasRuns
-      },
-      {
-        id: 'five_k',
-        title: 'Finisher 5K',
-        description: 'Selesaikan lari dengan jarak minimal 5 km',
-        icon: 'ribbon',
-        unlocked: has5K
-      },
-      {
-        id: 'ten_k',
-        title: 'Finisher 10K',
-        description: 'Selesaikan lari dengan jarak minimal 10 km',
-        icon: 'medal',
-        unlocked: has10K
-      },
-      {
-        id: 'early_bird',
-        title: 'Burung Pagi',
-        description: 'Mulai aktivitas lari sebelum jam 7 pagi',
-        icon: 'sunny',
-        unlocked: hasEarlyBird
-      },
-      {
-        id: 'explorer',
-        title: 'Penjelajah',
-        description: 'Mencatat 5 kali atau lebih aktivitas olahraga',
-        icon: 'compass',
-        unlocked: hasExplorer
-      }
-    ];
+    
+    return thisWeekActivities.reduce((sum, a) => sum + a.distance, 0);
   };
 
-  const badges = getBadges();
-  const unlockedCount = badges.filter(b => b.unlocked).length;
+  const currentWeekDistance = getWeeklyProgressDistance(activities);
+  const progressPercentage = weeklyGoal > 0 ? Math.min(100, (currentWeekDistance / weeklyGoal) * 100) : 0;
 
   const displayName = auth.currentUser?.displayName || 'Pelari';
   const displayEmail = auth.currentUser?.email || 'anonymous@lariyuk.com';
@@ -191,45 +150,25 @@ export default function ProfileScreen() {
                 <Ionicons name="add" size={24} color={Colors.light.text} />
               </TouchableOpacity>
             </View>
-          </View>
 
-          {/* Badges / Achievements Section */}
-          <Text style={styles.blockTitle}>Pencapaian & Lencana ({unlockedCount}/{badges.length})</Text>
-          <View style={styles.badgesWrapper}>
-            {badges.map(badge => (
-              <View 
-                key={badge.id} 
-                style={[
-                  styles.badgeCard,
-                  !badge.unlocked && styles.lockedBadgeCard
-                ]}
-              >
-                <View style={[
-                  styles.badgeIconBg,
-                  badge.unlocked ? styles.unlockedIconBg : styles.lockedIconBg
-                ]}>
-                  <Ionicons 
-                    name={badge.icon as any} 
-                    size={24} 
-                    color={badge.unlocked ? '#FF9500' : '#8E8E93'} 
-                  />
-                </View>
-                <View style={styles.badgeInfo}>
-                  <Text style={[
-                    styles.badgeTitle,
-                    !badge.unlocked && styles.lockedText
-                  ]}>
-                    {badge.title}
-                  </Text>
-                  <Text style={styles.badgeDesc}>{badge.description}</Text>
-                </View>
-                {badge.unlocked ? (
-                  <Ionicons name="checkmark-circle" size={20} color={Colors.light.success} />
-                ) : (
-                  <Ionicons name="lock-closed" size={18} color="#C7C7CC" />
-                )}
+            {/* Target Progress Bar */}
+            <View style={styles.progressBarWrapper}>
+              <View style={styles.progressTextRow}>
+                <Text style={styles.progressLabel}>Kemajuan Minggu Ini</Text>
+                <Text style={styles.progressValue}>
+                  {currentWeekDistance.toFixed(2)} / {weeklyGoal} km ({progressPercentage.toFixed(0)}%)
+                </Text>
               </View>
-            ))}
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${progressPercentage}%` }]} />
+              </View>
+              {progressPercentage >= 100 && (
+                <View style={styles.goalAchievedRow}>
+                  <Ionicons name="sparkles" size={16} color="#FF9500" style={{ marginRight: 6 }} />
+                  <Text style={styles.goalAchievedText}>Selamat! Target lari minggu ini tercapai!</Text>
+                </View>
+              )}
+            </View>
           </View>
 
           {/* Logout Button */}
@@ -392,60 +331,53 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
     marginLeft: 4,
   },
-  blockTitle: {
-    fontSize: 14,
+  progressBarWrapper: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderColor: '#F0F0F3',
+    paddingTop: 16,
+  },
+  progressTextRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: 12,
     fontWeight: 'bold',
-    color: Colors.light.text,
-    marginBottom: 12,
-    marginLeft: 4,
+    color: Colors.light.textSecondary,
   },
-  badgesWrapper: {
-    marginBottom: 20,
+  progressValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.light.primary,
   },
-  badgeCard: {
+  progressBarBg: {
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#E2E2E7',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 5,
+    backgroundColor: Colors.light.primary,
+  },
+  goalAchievedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.cardBackground,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    marginTop: 10,
+    backgroundColor: '#FFF9EB',
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.light.border,
+    borderColor: '#FFEFC7',
   },
-  lockedBadgeCard: {
-    opacity: 0.7,
-  },
-  badgeIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  unlockedIconBg: {
-    backgroundColor: '#FFEFC7',
-  },
-  lockedIconBg: {
-    backgroundColor: '#F0F0F3',
-  },
-  badgeInfo: {
-    flex: 1,
-    marginLeft: 12,
-    marginRight: 8,
-  },
-  badgeTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-  },
-  lockedText: {
-    color: Colors.light.textSecondary,
-  },
-  badgeDesc: {
+  goalAchievedText: {
     fontSize: 11,
-    color: Colors.light.textSecondary,
-    marginTop: 2,
-    lineHeight: 14,
+    color: '#FF9500',
+    fontWeight: 'bold',
   },
   logoutBtn: {
     flexDirection: 'row',
