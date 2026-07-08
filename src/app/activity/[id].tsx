@@ -28,43 +28,67 @@ import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 
-const VINTAGE_MAP_STYLE = [
+const SILVER_MAP_STYLE = [
   {
     "elementType": "geometry",
-    "stylers": [{ "color": "#eae6db" }]
+    "stylers": [{ "color": "#f5f5f5" }]
+  },
+  {
+    "elementType": "labels.icon",
+    "stylers": [{ "visibility": "off" }]
   },
   {
     "elementType": "labels.text.fill",
-    "stylers": [{ "color": "#5c5850" }]
+    "stylers": [{ "color": "#616161" }]
   },
   {
     "elementType": "labels.text.stroke",
-    "stylers": [{ "color": "#eae6db" }]
+    "stylers": [{ "color": "#f5f5f5" }]
   },
   {
-    "featureType": "landscape.natural",
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels.text.fill",
+    "stylers": [{ "color": "#bdbdbd" }]
+  },
+  {
+    "featureType": "poi",
     "elementType": "geometry",
-    "stylers": [{ "color": "#e0dcd0" }]
+    "stylers": [{ "color": "#eeeeee" }]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [{ "color": "#757575" }]
   },
   {
     "featureType": "poi.park",
     "elementType": "geometry",
-    "stylers": [{ "color": "#cbdccb" }]
+    "stylers": [{ "color": "#e5e5e5" }]
   },
   {
     "featureType": "road",
     "elementType": "geometry",
-    "stylers": [{ "color": "#f8f7f4" }]
+    "stylers": [{ "color": "#ffffff" }]
+  },
+  {
+    "featureType": "road.arterial",
+    "elementType": "labels.text.fill",
+    "stylers": [{ "color": "#757575" }]
   },
   {
     "featureType": "road.highway",
     "elementType": "geometry",
-    "stylers": [{ "color": "#eddcb8" }]
+    "stylers": [{ "color": "#dadada" }]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.fill",
+    "stylers": [{ "color": "#616161" }]
   },
   {
     "featureType": "water",
     "elementType": "geometry",
-    "stylers": [{ "color": "#b8c9cd" }]
+    "stylers": [{ "color": "#c9c9c9" }]
   }
 ];
 
@@ -77,7 +101,7 @@ const formatShareDuration = (seconds: number) => {
     return `${h}j ${m}m`;
   }
   if (m > 0) {
-    return `${m}m`;
+    return `${m}m ${s}d`;
   }
   return `${s}d`;
 };
@@ -473,26 +497,27 @@ export default function ActivityDetailScreen() {
                         zoomEnabled={false}
                         pitchEnabled={false}
                         rotateEnabled={false}
-                        customMapStyle={VINTAGE_MAP_STYLE}
+                        customMapStyle={SILVER_MAP_STYLE}
                       >
                         <Polyline
                           coordinates={activity.route}
-                          strokeWidth={6}
+                          strokeWidth={3}
                           strokeColor="#FF5722"
                         />
-                        {startLoc && (
-                          <Marker coordinate={startLoc}>
-                            <View style={[styles.pinCircleSmall, { backgroundColor: Colors.light.success }]} />
-                          </Marker>
-                        )}
-                        {endLoc && (
-                          <Marker coordinate={endLoc}>
-                            <View style={[styles.pinCircleSmall, { backgroundColor: Colors.light.danger }]} />
-                          </Marker>
-                        )}
                       </MapView>
-                      {/* Vintage overlay amber photo filter */}
-                      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(235, 215, 180, 0.07)', pointerEvents: 'none', zIndex: 2 }]} />
+                      {/* Gradient Overlay for bottom text readability */}
+                      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                        <Svg height="100%" width="100%">
+                          <Defs>
+                            <SvgGradient id="bottomFade" x1="0" y1="0" x2="0" y2="1">
+                              <Stop offset="0%" stopColor="transparent" stopOpacity={0} />
+                              <Stop offset="55%" stopColor="rgba(0, 0, 0, 0.02)" stopOpacity={0.02} />
+                              <Stop offset="100%" stopColor="rgba(0, 0, 0, 0.75)" stopOpacity={0.75} />
+                            </SvgGradient>
+                          </Defs>
+                          <Rect x="0" y="0" width="100%" height="100%" fill="url(#bottomFade)" />
+                        </Svg>
+                      </View>
                     </View>
                   ) : (
                     <View style={[styles.shareMap, { backgroundColor: '#E2E2E7', alignItems: 'center', justifyContent: 'center' }]}>
@@ -512,35 +537,33 @@ export default function ActivityDetailScreen() {
                   {/* bottom stats row - Strava Style Minimalist */}
                   <View style={styles.cardTextOverlay}>
                     {/* Activity Type Icon & Title */}
-                    <View style={styles.cardHeaderRow}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons 
-                          name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'trail-sign'} 
-                          size={18} 
-                          color="#FFFFFF" 
-                          style={{ marginRight: 6 }} 
-                        />
-                        <Text style={styles.cardActivityTitle} numberOfLines={1}>
-                          {activity.title}
-                        </Text>
-                      </View>
-                    </View>
+                    <Ionicons 
+                      name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'walk-outline'} 
+                      size={24} 
+                      color="#FFFFFF" 
+                      style={{ marginBottom: 4 }} 
+                    />
+                    <Text style={styles.cardActivityTitle} numberOfLines={1}>
+                      {activity.title}
+                    </Text>
 
-                    {/* Stats List - Minimal Clean Vertical Stack */}
-                    <View style={styles.stravaStatsContainer}>
-                      <View style={styles.stravaStatItem}>
-                        <Text style={styles.stravaLabel}>Pace</Text>
-                        <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
+                    {/* Stats List - 2 Columns */}
+                    <View style={styles.stravaStatsRow}>
+                      <View style={styles.stravaStatsLeftCol}>
+                        <View style={styles.stravaStatBlock}>
+                          <Text style={styles.stravaLabel}>Pace</Text>
+                          <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
+                        </View>
+                        <View style={[styles.stravaStatBlock, { marginTop: 12 }]}>
+                          <Text style={styles.stravaLabel}>Jarak</Text>
+                          <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
+                        </View>
                       </View>
-                      
-                      <View style={styles.stravaStatItem}>
-                        <Text style={styles.stravaLabel}>Waktu</Text>
-                        <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
-                      </View>
-
-                      <View style={styles.stravaStatItem}>
-                        <Text style={styles.stravaLabel}>Jarak</Text>
-                        <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
+                      <View style={styles.stravaStatsRightCol}>
+                        <View style={styles.stravaStatBlock}>
+                          <Text style={styles.stravaLabel}>Waktu</Text>
+                          <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
+                        </View>
                       </View>
                     </View>
                   </View>
@@ -585,26 +608,27 @@ export default function ActivityDetailScreen() {
                         zoomEnabled={false}
                         pitchEnabled={false}
                         rotateEnabled={false}
-                        customMapStyle={VINTAGE_MAP_STYLE}
+                        customMapStyle={SILVER_MAP_STYLE}
                       >
                         <Polyline
                           coordinates={activity.route}
-                          strokeWidth={5}
+                          strokeWidth={3}
                           strokeColor="#FF5722"
                         />
-                        {startLoc && (
-                          <Marker coordinate={startLoc}>
-                            <View style={[styles.pinCircleSmall, { backgroundColor: Colors.light.success }]} />
-                          </Marker>
-                        )}
-                        {endLoc && (
-                          <Marker coordinate={endLoc}>
-                            <View style={[styles.pinCircleSmall, { backgroundColor: Colors.light.danger }]} />
-                          </Marker>
-                        )}
                       </MapView>
-                      {/* Vintage overlay amber photo filter */}
-                      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(235, 215, 180, 0.07)', pointerEvents: 'none', zIndex: 2 }]} />
+                      {/* Gradient Overlay for bottom text readability */}
+                      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                        <Svg height="100%" width="100%">
+                          <Defs>
+                            <SvgGradient id="bottomFade" x1="0" y1="0" x2="0" y2="1">
+                              <Stop offset="0%" stopColor="transparent" stopOpacity={0} />
+                              <Stop offset="55%" stopColor="rgba(0, 0, 0, 0.02)" stopOpacity={0.02} />
+                              <Stop offset="100%" stopColor="rgba(0, 0, 0, 0.75)" stopOpacity={0.75} />
+                            </SvgGradient>
+                          </Defs>
+                          <Rect x="0" y="0" width="100%" height="100%" fill="url(#bottomFade)" />
+                        </Svg>
+                      </View>
                     </View>
                   ) : (
                     <View style={[styles.shareMap, { backgroundColor: '#E2E2E7', alignItems: 'center', justifyContent: 'center' }]}>
@@ -621,38 +645,36 @@ export default function ActivityDetailScreen() {
                     />
                   </View>
 
-                  {/* Dark Gradient-like Text Overlay - Strava Style Minimalist */}
+                  {/* bottom stats row - Strava Style Minimalist */}
                   <View style={styles.cardTextOverlay}>
                     {/* Activity Type Icon & Title */}
-                    <View style={styles.cardHeaderRow}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons 
-                          name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'trail-sign'} 
-                          size={18} 
-                          color="#FFFFFF" 
-                          style={{ marginRight: 6 }} 
-                        />
-                        <Text style={styles.cardActivityTitle} numberOfLines={1}>
-                          {activity.title}
-                        </Text>
-                      </View>
-                    </View>
+                    <Ionicons 
+                      name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'walk-outline'} 
+                      size={24} 
+                      color="#FFFFFF" 
+                      style={{ marginBottom: 4 }} 
+                    />
+                    <Text style={styles.cardActivityTitle} numberOfLines={1}>
+                      {activity.title}
+                    </Text>
 
-                    {/* Stats List - Minimal Clean Vertical Stack */}
-                    <View style={styles.stravaStatsContainer}>
-                      <View style={styles.stravaStatItem}>
-                        <Text style={styles.stravaLabel}>Pace</Text>
-                        <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
+                    {/* Stats List - 2 Columns */}
+                    <View style={styles.stravaStatsRow}>
+                      <View style={styles.stravaStatsLeftCol}>
+                        <View style={styles.stravaStatBlock}>
+                          <Text style={styles.stravaLabel}>Pace</Text>
+                          <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
+                        </View>
+                        <View style={[styles.stravaStatBlock, { marginTop: 12 }]}>
+                          <Text style={styles.stravaLabel}>Jarak</Text>
+                          <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
+                        </View>
                       </View>
-                      
-                      <View style={styles.stravaStatItem}>
-                        <Text style={styles.stravaLabel}>Waktu</Text>
-                        <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
-                      </View>
-
-                      <View style={styles.stravaStatItem}>
-                        <Text style={styles.stravaLabel}>Jarak</Text>
-                        <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
+                      <View style={styles.stravaStatsRightCol}>
+                        <View style={styles.stravaStatBlock}>
+                          <Text style={styles.stravaLabel}>Waktu</Text>
+                          <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
+                        </View>
                       </View>
                     </View>
                   </View>
@@ -684,26 +706,27 @@ export default function ActivityDetailScreen() {
                     zoomEnabled={false}
                     pitchEnabled={false}
                     rotateEnabled={false}
-                    customMapStyle={VINTAGE_MAP_STYLE}
+                    customMapStyle={SILVER_MAP_STYLE}
                   >
                     <Polyline
                       coordinates={activity.route}
-                      strokeWidth={6} // Thicker trail for download
+                      strokeWidth={3}
                       strokeColor="#FF5722"
                     />
-                    {startLoc && (
-                      <Marker coordinate={startLoc}>
-                        <View style={[styles.pinCircleSmall, { backgroundColor: Colors.light.success }]} />
-                      </Marker>
-                    )}
-                    {endLoc && (
-                      <Marker coordinate={endLoc}>
-                        <View style={[styles.pinCircleSmall, { backgroundColor: Colors.light.danger }]} />
-                      </Marker>
-                    )}
                   </MapView>
-                  {/* Vintage overlay amber photo filter */}
-                  <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(235, 215, 180, 0.07)', pointerEvents: 'none', zIndex: 2 }]} />
+                  {/* Gradient Overlay for bottom text readability */}
+                  <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                    <Svg height="100%" width="100%">
+                      <Defs>
+                        <SvgGradient id="bottomFade" x1="0" y1="0" x2="0" y2="1">
+                          <Stop offset="0%" stopColor="transparent" stopOpacity={0} />
+                          <Stop offset="55%" stopColor="rgba(0, 0, 0, 0.02)" stopOpacity={0.02} />
+                          <Stop offset="100%" stopColor="rgba(0, 0, 0, 0.75)" stopOpacity={0.75} />
+                        </SvgGradient>
+                      </Defs>
+                      <Rect x="0" y="0" width="100%" height="100%" fill="url(#bottomFade)" />
+                    </Svg>
+                  </View>
                 </View>
               ) : (
                 <View style={[styles.shareMap, { backgroundColor: '#E2E2E7', alignItems: 'center', justifyContent: 'center' }]}>
@@ -720,38 +743,36 @@ export default function ActivityDetailScreen() {
                 />
               </View>
 
-              {/* Dark Gradient-like Text Overlay - Strava Style Minimalist */}
+              {/* bottom stats row - Strava Style Minimalist */}
               <View style={styles.cardTextOverlay}>
                 {/* Activity Type Icon & Title */}
-                <View style={styles.cardHeaderRow}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Ionicons 
-                      name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'trail-sign'} 
-                      size={18} 
-                      color="#FFFFFF" 
-                      style={{ marginRight: 6 }} 
-                    />
-                    <Text style={styles.cardActivityTitle} numberOfLines={1}>
-                      {activity.title}
-                    </Text>
-                  </View>
-                </View>
+                <Ionicons 
+                  name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'walk-outline'} 
+                  size={24} 
+                  color="#FFFFFF" 
+                  style={{ marginBottom: 4 }} 
+                />
+                <Text style={styles.cardActivityTitle} numberOfLines={1}>
+                  {activity.title}
+                </Text>
 
-                {/* Stats List - Minimal Clean Vertical Stack */}
-                <View style={styles.stravaStatsContainer}>
-                  <View style={styles.stravaStatItem}>
-                    <Text style={styles.stravaLabel}>Pace</Text>
-                    <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
+                {/* Stats List - 2 Columns */}
+                <View style={styles.stravaStatsRow}>
+                  <View style={styles.stravaStatsLeftCol}>
+                    <View style={styles.stravaStatBlock}>
+                      <Text style={styles.stravaLabel}>Pace</Text>
+                      <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
+                    </View>
+                    <View style={[styles.stravaStatBlock, { marginTop: 12 }]}>
+                      <Text style={styles.stravaLabel}>Jarak</Text>
+                      <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
+                    </View>
                   </View>
-                  
-                  <View style={styles.stravaStatItem}>
-                    <Text style={styles.stravaLabel}>Waktu</Text>
-                    <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
-                  </View>
-
-                  <View style={styles.stravaStatItem}>
-                    <Text style={styles.stravaLabel}>Jarak</Text>
-                    <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
+                  <View style={styles.stravaStatsRightCol}>
+                    <View style={styles.stravaStatBlock}>
+                      <Text style={styles.stravaLabel}>Waktu</Text>
+                      <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -1027,30 +1048,36 @@ const styles = StyleSheet.create({
     fontWeight: '900', // Ultra bold premium title
     letterSpacing: 0.3,
   },
-  stravaStatsContainer: {
-    marginTop: 8,
+  stravaStatsRow: {
+    flexDirection: 'row',
+    marginTop: 12,
     borderTopWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
-    paddingTop: 10,
-    gap: 6,
+    paddingTop: 12,
   },
-  stravaStatItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
+  stravaStatsLeftCol: {
+    flex: 1.2,
+  },
+  stravaStatsRightCol: {
+    flex: 1,
+    paddingLeft: 16,
+  },
+  stravaStatBlock: {
+    alignItems: 'flex-start',
   },
   stravaLabel: {
-    color: 'rgba(255, 255, 255, 0.55)',
+    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 10,
     fontWeight: 'bold',
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    letterSpacing: 0.8,
   },
   stravaValue: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 22,
     fontWeight: '900',
     fontVariant: ['tabular-nums'],
+    marginTop: 2,
   },
   pinCircleSmall: {
     width: 10,
