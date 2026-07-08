@@ -277,12 +277,29 @@ export default function ActivityDetailScreen() {
       maxLng = Math.max(maxLng, p.longitude);
     });
 
+    // Dynamic scaling helper: For very short distances, expand view enough to resolve the path nicely.
+    // For normal distances, use a balanced scale factor.
+    let scaleMultiplier = 1.9;
+    let minDelta = 0.009; // Default minimum delta around 1.0 km viewport
+
+    if (activity.distance < 0.05) {
+      // Extremely short track (e.g. 20 meters demo / test) -> require wider map view to see road context and path clearly
+      scaleMultiplier = 8.5;
+      minDelta = 0.0025; // (~270m)
+    } else if (activity.distance < 0.5) {
+      // Short distance (under 500m)
+      scaleMultiplier = 3.5;
+      minDelta = 0.005; // (~550m)
+    } else if (activity.distance > 10) {
+      // Long runs (over 10km) -> make bounds slightly tighter to not make the track line look microscopic
+      scaleMultiplier = 1.4;
+    }
+
     const midLat = (minLat + maxLat) / 2;
     const midLng = (minLng + maxLng) / 2;
-    
-    // Zoom out slightly to focus on the trail path with context (1.8 padding instead of 1.15, min delta 0.008 (~900m) instead of 0.0015)
-    const latDelta = Math.max((maxLat - minLat) * 1.8, 0.008);
-    const lngDelta = Math.max((maxLng - minLng) * 1.8, 0.008);
+
+    const latDelta = Math.max((maxLat - minLat) * scaleMultiplier, minDelta);
+    const lngDelta = Math.max((maxLng - minLng) * scaleMultiplier, minDelta);
 
     return {
       latitude: midLat,
@@ -492,30 +509,38 @@ export default function ActivityDetailScreen() {
                     />
                   </View>
 
-                  {/* bottom stats row */}
+                  {/* bottom stats row - Strava Style Minimalist */}
                   <View style={styles.cardTextOverlay}>
+                    {/* Activity Type Icon & Title */}
                     <View style={styles.cardHeaderRow}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons name="walk" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
-                        <Text style={styles.cardActivityTitle} numberOfLines={1}>{activity.title}</Text>
-                      </View>
-                      <View style={{ backgroundColor: 'rgba(255, 87, 34, 0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                        <Text style={{ color: '#FF5722', fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 }}>Outdoor Run</Text>
+                        <Ionicons 
+                          name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'trail-sign'} 
+                          size={18} 
+                          color="#FFFFFF" 
+                          style={{ marginRight: 6 }} 
+                        />
+                        <Text style={styles.cardActivityTitle} numberOfLines={1}>
+                          {activity.title}
+                        </Text>
                       </View>
                     </View>
 
-                    <View style={styles.cardStatsRow}>
-                      <View style={styles.cardStatCol}>
-                        <Text style={styles.cardStatLabel}>Pace</Text>
-                        <Text style={styles.cardStatVal}>{formatPace(activity.pace)}/km</Text>
+                    {/* Stats List - Minimal Clean Vertical Stack */}
+                    <View style={styles.stravaStatsContainer}>
+                      <View style={styles.stravaStatItem}>
+                        <Text style={styles.stravaLabel}>Pace</Text>
+                        <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
                       </View>
-                      <View style={[styles.cardStatCol, styles.cardStatDivider]}>
-                        <Text style={styles.cardStatLabel}>Waktu</Text>
-                        <Text style={styles.cardStatVal}>{formatShareDuration(activity.duration)}</Text>
+                      
+                      <View style={styles.stravaStatItem}>
+                        <Text style={styles.stravaLabel}>Waktu</Text>
+                        <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
                       </View>
-                      <View style={[styles.cardStatCol, styles.cardStatDivider]}>
-                        <Text style={styles.cardStatLabel}>Jarak</Text>
-                        <Text style={styles.cardStatVal}>{activity.distance.toFixed(2)} km</Text>
+
+                      <View style={styles.stravaStatItem}>
+                        <Text style={styles.stravaLabel}>Jarak</Text>
+                        <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
                       </View>
                     </View>
                   </View>
@@ -596,30 +621,38 @@ export default function ActivityDetailScreen() {
                     />
                   </View>
 
-                  {/* Dark Gradient-like Text Overlay */}
+                  {/* Dark Gradient-like Text Overlay - Strava Style Minimalist */}
                   <View style={styles.cardTextOverlay}>
+                    {/* Activity Type Icon & Title */}
                     <View style={styles.cardHeaderRow}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons name="walk" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
-                        <Text style={styles.cardActivityTitle} numberOfLines={1}>{activity.title}</Text>
-                      </View>
-                      <View style={{ backgroundColor: 'rgba(255, 87, 34, 0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                        <Text style={{ color: '#FF5722', fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 }}>Outdoor Run</Text>
+                        <Ionicons 
+                          name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'trail-sign'} 
+                          size={18} 
+                          color="#FFFFFF" 
+                          style={{ marginRight: 6 }} 
+                        />
+                        <Text style={styles.cardActivityTitle} numberOfLines={1}>
+                          {activity.title}
+                        </Text>
                       </View>
                     </View>
 
-                    <View style={styles.cardStatsRow}>
-                      <View style={styles.cardStatCol}>
-                        <Text style={styles.cardStatLabel}>Pace</Text>
-                        <Text style={styles.cardStatVal}>{formatPace(activity.pace)}/km</Text>
+                    {/* Stats List - Minimal Clean Vertical Stack */}
+                    <View style={styles.stravaStatsContainer}>
+                      <View style={styles.stravaStatItem}>
+                        <Text style={styles.stravaLabel}>Pace</Text>
+                        <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
                       </View>
-                      <View style={[styles.cardStatCol, styles.cardStatDivider]}>
-                        <Text style={styles.cardStatLabel}>Waktu</Text>
-                        <Text style={styles.cardStatVal}>{formatShareDuration(activity.duration)}</Text>
+                      
+                      <View style={styles.stravaStatItem}>
+                        <Text style={styles.stravaLabel}>Waktu</Text>
+                        <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
                       </View>
-                      <View style={[styles.cardStatCol, styles.cardStatDivider]}>
-                        <Text style={styles.cardStatLabel}>Jarak</Text>
-                        <Text style={styles.cardStatVal}>{activity.distance.toFixed(2)} km</Text>
+
+                      <View style={styles.stravaStatItem}>
+                        <Text style={styles.stravaLabel}>Jarak</Text>
+                        <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
                       </View>
                     </View>
                   </View>
@@ -687,31 +720,38 @@ export default function ActivityDetailScreen() {
                 />
               </View>
 
-              {/* Dark Gradient-like Text Overlay */}
+              {/* Dark Gradient-like Text Overlay - Strava Style Minimalist */}
               <View style={styles.cardTextOverlay}>
-                {/* Header Row with Title and Watermark Logo */}
+                {/* Activity Type Icon & Title */}
                 <View style={styles.cardHeaderRow}>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Ionicons name="walk" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
-                    <Text style={styles.cardActivityTitle} numberOfLines={1}>{activity.title}</Text>
-                  </View>
-                  <View style={{ backgroundColor: 'rgba(255, 87, 34, 0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                    <Text style={{ color: '#FF5722', fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 }}>Outdoor Run</Text>
+                    <Ionicons 
+                      name={activity.type === 'walk' ? 'walk' : activity.type === 'bike' ? 'bicycle' : 'trail-sign'} 
+                      size={18} 
+                      color="#FFFFFF" 
+                      style={{ marginRight: 6 }} 
+                    />
+                    <Text style={styles.cardActivityTitle} numberOfLines={1}>
+                      {activity.title}
+                    </Text>
                   </View>
                 </View>
-                {/* Horizontal Stats Row */}
-                <View style={styles.cardStatsRow}>
-                  <View style={styles.cardStatCol}>
-                    <Text style={styles.cardStatLabel}>Pace</Text>
-                    <Text style={styles.cardStatVal}>{formatPace(activity.pace)}/km</Text>
+
+                {/* Stats List - Minimal Clean Vertical Stack */}
+                <View style={styles.stravaStatsContainer}>
+                  <View style={styles.stravaStatItem}>
+                    <Text style={styles.stravaLabel}>Pace</Text>
+                    <Text style={styles.stravaValue}>{formatPace(activity.pace)} /km</Text>
                   </View>
-                  <View style={[styles.cardStatCol, styles.cardStatDivider]}>
-                    <Text style={styles.cardStatLabel}>Waktu</Text>
-                    <Text style={styles.cardStatVal}>{formatShareDuration(activity.duration)}</Text>
+                  
+                  <View style={styles.stravaStatItem}>
+                    <Text style={styles.stravaLabel}>Waktu</Text>
+                    <Text style={styles.stravaValue}>{formatShareDuration(activity.duration)}</Text>
                   </View>
-                  <View style={[styles.cardStatCol, styles.cardStatDivider]}>
-                    <Text style={styles.cardStatLabel}>Jarak</Text>
-                    <Text style={styles.cardStatVal}>{activity.distance.toFixed(2)} km</Text>
+
+                  <View style={styles.stravaStatItem}>
+                    <Text style={styles.stravaLabel}>Jarak</Text>
+                    <Text style={styles.stravaValue}>{activity.distance.toFixed(2)} km</Text>
                   </View>
                 </View>
               </View>
@@ -951,16 +991,12 @@ const styles = StyleSheet.create({
   },
   cardTextOverlay: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 0, // Sharp rectangular corners matching the outer container
-    overflow: 'hidden',
-    backgroundColor: 'rgba(12, 12, 18, 0.75)', // Glassmorphism translucent dark panel
-    borderWidth: 1.2,
-    borderColor: 'rgba(255, 255, 255, 0.12)', // Premium border stroke
+    paddingVertical: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)', // Translucent dark overlay spanning the full bottom area
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -987,39 +1023,34 @@ const styles = StyleSheet.create({
   },
   cardActivityTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900', // Ultra bold premium title
     letterSpacing: 0.3,
   },
-  cardStatsRow: {
+  stravaStatsContainer: {
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    paddingTop: 10,
+    gap: 6,
+  },
+  stravaStatItem: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    paddingTop: 14,
-    marginTop: 6,
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
   },
-  cardStatCol: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  cardStatDivider: {
-    borderLeftWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  cardStatLabel: {
+  stravaLabel: {
     color: 'rgba(255, 255, 255, 0.55)',
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 'bold',
     textTransform: 'uppercase',
-    letterSpacing: 1.5, // Modern premium letter spacing
+    letterSpacing: 1.2,
   },
-  cardStatVal: {
+  stravaValue: {
     color: '#FFFFFF',
-    fontSize: 18, // Modern, larger clean values
+    fontSize: 15,
     fontWeight: '900',
-    marginTop: 3,
+    fontVariant: ['tabular-nums'],
   },
   pinCircleSmall: {
     width: 10,
