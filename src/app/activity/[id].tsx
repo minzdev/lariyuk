@@ -413,18 +413,18 @@ export default function ActivityDetailScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Share Achievement Button (Strava-Style) */}
+          {/* Share Achievement Button */}
           <TouchableOpacity 
             style={styles.shareActivityBtn}
             onPress={() => setShowShareModal(true)}
             activeOpacity={0.85}
           >
             <Ionicons name="share-social-outline" size={20} color={Colors.light.primary} style={{ marginRight: 8 }} />
-            <Text style={styles.shareActivityText}>Bagikan Pencapaian (Strava-Style)</Text>
+            <Text style={styles.shareActivityText}>Bagikan Pencapaian</Text>
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Strava-Style Share Card Modal */}
+        {/* Share Card Modal */}
         <Modal
           visible={showShareModal}
           transparent={true}
@@ -545,7 +545,7 @@ export default function ActivityDetailScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Strava-Style Card Container (Portrait Preview) */}
+                {/* Card Container (Portrait Preview) */}
                 <TouchableOpacity 
                   activeOpacity={0.9} 
                   onPress={() => setFullScreenPreview(true)}
@@ -699,8 +699,7 @@ export default function ActivityDetailScreen() {
                     <Text style={{ color: '#FF5722', fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 }}>Outdoor Run</Text>
                   </View>
                 </View>
-
-                {/* Horizontal Stats Row - Strava Style */}
+                {/* Horizontal Stats Row */}
                 <View style={styles.cardStatsRow}>
                   <View style={styles.cardStatCol}>
                     <Text style={styles.cardStatLabel}>Pace</Text>
