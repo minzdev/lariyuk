@@ -65,6 +65,68 @@ export default function ProfileScreen() {
     );
   };
 
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    // Monday is index 0, Sunday is index 6
+    return firstDay === 0 ? 6 : firstDay - 1;
+  };
+
+  const generateCalendarCells = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const cells = [];
+    
+    // Add empty padding days
+    for (let i = 0; i < firstDay; i++) {
+      cells.push({ day: null, key: `empty-${i}` });
+    }
+    
+    // Add actual days
+    for (let day = 1; day <= daysInMonth; day++) {
+      cells.push({ day, key: `day-${day}` });
+    }
+    
+    return cells;
+  };
+
+  const hasActivityOnDate = (day: number | null) => {
+    if (!day) return false;
+    const targetYear = currentDate.getFullYear();
+    const targetMonth = currentDate.getMonth();
+    
+    return activities.some(a => {
+      const actDate = new Date(a.createdAt);
+      return (
+        actDate.getFullYear() === targetYear &&
+        actDate.getMonth() === targetMonth &&
+        actDate.getDate() === day
+      );
+    });
+  };
+
+  const monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
   const getWeeklyProgressDistance = (activitiesData: Activity[]) => {
     const today = new Date();
     const dayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
@@ -168,6 +230,73 @@ export default function ProfileScreen() {
                   <Text style={styles.goalAchievedText}>Selamat! Target lari minggu ini tercapai!</Text>
                 </View>
               )}
+            </View>
+          </View>
+
+          {/* Kalender Aktivitas Card */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Kalender Aktivitas</Text>
+            <Text style={styles.sectionSubtitle}>Menampilkan riwayat lari harian Anda bulan ini.</Text>
+            
+            <View style={styles.calendarHeader}>
+              <TouchableOpacity onPress={handlePrevMonth} style={styles.calendarNavBtn}>
+                <Ionicons name="chevron-back" size={20} color={Colors.light.text} />
+              </TouchableOpacity>
+              <Text style={styles.calendarMonthTitle}>
+                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              </Text>
+              <TouchableOpacity onPress={handleNextMonth} style={styles.calendarNavBtn}>
+                <Ionicons name="chevron-forward" size={20} color={Colors.light.text} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Weekdays */}
+            <View style={styles.weekdaysRow}>
+              {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(d => (
+                <Text key={d} style={styles.weekdayText}>{d}</Text>
+              ))}
+            </View>
+
+            {/* Days Grid */}
+            <View style={styles.daysGrid}>
+              {generateCalendarCells().map(cell => {
+                const isActive = hasActivityOnDate(cell.day);
+                const isToday = cell.day !== null && 
+                  new Date().getDate() === cell.day && 
+                  new Date().getMonth() === currentDate.getMonth() && 
+                  new Date().getFullYear() === currentDate.getFullYear();
+
+                return (
+                  <View key={cell.key} style={styles.dayCell}>
+                    {cell.day !== null ? (
+                      <View style={[
+                        styles.dayCircle,
+                        isActive && styles.activeDayCircle,
+                        isToday && !isActive && styles.todayDayCircle
+                      ]}>
+                        <Text style={[
+                          styles.dayText,
+                          isActive && styles.activeDayText,
+                          isToday && !isActive && styles.todayDayText
+                        ]}>
+                          {cell.day}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                );
+              })}
+            </View>
+
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: Colors.light.primary }]} />
+                <Text style={styles.legendText}>Hari Aktif</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: 'transparent', borderWidth: 1, borderColor: Colors.light.primary }]} />
+                <Text style={styles.legendText}>Hari Ini</Text>
+              </View>
             </View>
           </View>
 
@@ -378,6 +507,101 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#FF9500',
     fontWeight: 'bold',
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  calendarNavBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F0F0F3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarMonthTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: Colors.light.text,
+  },
+  weekdaysRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderColor: '#F0F0F3',
+    paddingBottom: 6,
+  },
+  weekdayText: {
+    width: `${100 / 7}%`,
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#8E8E93',
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  dayCell: {
+    width: `${100 / 7}%`,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 2,
+  },
+  dayCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeDayCircle: {
+    backgroundColor: Colors.light.primary,
+  },
+  todayDayCircle: {
+    borderWidth: 1.5,
+    borderColor: Colors.light.primary,
+  },
+  dayText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.light.text,
+  },
+  activeDayText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  todayDayText: {
+    color: Colors.light.primary,
+    fontWeight: 'bold',
+  },
+  legendRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 16,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  legendText: {
+    fontSize: 10,
+    color: Colors.light.textSecondary,
+    fontWeight: '600',
   },
   logoutBtn: {
     flexDirection: 'row',
