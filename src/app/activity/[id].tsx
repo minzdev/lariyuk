@@ -280,9 +280,9 @@ export default function ActivityDetailScreen() {
     const midLat = (minLat + maxLat) / 2;
     const midLng = (minLng + maxLng) / 2;
     
-    // Zoom in tightly to focus on the trail path (1.15 padding instead of 1.4, min delta 165 meters instead of 550 meters)
-    const latDelta = Math.max((maxLat - minLat) * 1.15, 0.0015);
-    const lngDelta = Math.max((maxLng - minLng) * 1.15, 0.0015);
+    // Zoom out slightly to focus on the trail path with context (1.8 padding instead of 1.15, min delta 0.008 (~900m) instead of 0.0015)
+    const latDelta = Math.max((maxLat - minLat) * 1.8, 0.008);
+    const lngDelta = Math.max((maxLng - minLng) * 1.8, 0.008);
 
     return {
       latitude: midLat,
@@ -924,7 +924,7 @@ const styles = StyleSheet.create({
   shareCardContainer: {
     width: '100%',
     aspectRatio: 0.6, // Taller portrait ratio (similar to 9:16)
-    borderRadius: 20,
+    borderRadius: 0,
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1.5,
@@ -956,7 +956,7 @@ const styles = StyleSheet.create({
     right: 16,
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderRadius: 20, // Rounded corners on all sides for a modern floating card
+    borderRadius: 0, // Sharp rectangular corners matching the outer container
     overflow: 'hidden',
     backgroundColor: 'rgba(12, 12, 18, 0.75)', // Glassmorphism translucent dark panel
     borderWidth: 1.2,
