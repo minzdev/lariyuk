@@ -17,6 +17,27 @@ import { loginUser } from '../config/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { useDialogs } from '../context/DialogContext';
 
+const getFriendlyErrorMessage = (errorMsg: string): string => {
+  if (!errorMsg) return 'Terjadi kesalahan. Silakan coba lagi.';
+  
+  const lowerMsg = errorMsg.toLowerCase();
+  
+  if (lowerMsg.includes('invalid-credential') || lowerMsg.includes('wrong-password') || lowerMsg.includes('user-not-found')) {
+    return 'Email atau kata sandi salah. Silakan periksa kembali.';
+  }
+  if (lowerMsg.includes('invalid-email')) {
+    return 'Format alamat email tidak valid.';
+  }
+  if (lowerMsg.includes('network-request-failed')) {
+    return 'Koneksi jaringan gagal. Periksa koneksi internet Anda.';
+  }
+  if (lowerMsg.includes('too-many-requests')) {
+    return 'Terlalu banyak percobaan masuk yang gagal. Silakan coba beberapa saat lagi.';
+  }
+  
+  return errorMsg.replace(/^firebase:\s*/i, '');
+};
+
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +59,7 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error(error);
-      showToast('Gagal Masuk', error.message || 'Email atau password salah.', 'error');
+      showToast('Gagal Masuk', getFriendlyErrorMessage(error.message), 'error');
     } finally {
       setLoading(false);
     }

@@ -19,6 +19,27 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useDialogs } from '../context/DialogContext';
 
+const getFriendlyErrorMessage = (errorMsg: string): string => {
+  if (!errorMsg) return 'Terjadi kesalahan saat membuat akun. Silakan coba lagi.';
+  
+  const lowerMsg = errorMsg.toLowerCase();
+  
+  if (lowerMsg.includes('email-already-in-use')) {
+    return 'Alamat email ini sudah digunakan oleh akun lain. Silakan masuk atau gunakan email lain.';
+  }
+  if (lowerMsg.includes('invalid-email')) {
+    return 'Format alamat email tidak valid.';
+  }
+  if (lowerMsg.includes('weak-password')) {
+    return 'Kata sandi terlalu lemah. Gunakan minimal 6 karakter.';
+  }
+  if (lowerMsg.includes('network-request-failed')) {
+    return 'Koneksi jaringan gagal. Periksa koneksi internet Anda.';
+  }
+  
+  return errorMsg.replace(/^firebase:\s*/i, '');
+};
+
 export default function SignupScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -70,7 +91,7 @@ export default function SignupScreen() {
       router.replace('/(tabs)');
     } catch (error: any) {
       console.error(error);
-      showToast('Gagal Daftar', error.message || 'Terjadi kesalahan saat membuat akun.', 'error');
+      showToast('Gagal Daftar', getFriendlyErrorMessage(error.message), 'error');
     } finally {
       setLoading(false);
     }

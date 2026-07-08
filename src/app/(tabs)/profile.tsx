@@ -171,18 +171,6 @@ export default function ProfileScreen() {
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{displayName}</Text>
               <Text style={styles.profileEmail}>{displayEmail}</Text>
-              
-              {/* Database sync type badge */}
-              <View style={[styles.dbBadge, isMock ? styles.mockBadge : styles.firebaseBadge]}>
-                <Ionicons 
-                  name={isMock ? "phone-portrait-outline" : "cloud-done-outline"} 
-                  size={12} 
-                  color="#FFF" 
-                />
-                <Text style={styles.dbBadgeText}>
-                  {isMock ? 'Mode Demo (Lokal)' : 'Firebase Aktif'}
-                </Text>
-              </View>
             </View>
           </View>
 
@@ -383,27 +371,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.light.textSecondary,
     marginTop: 2,
-  },
-  dbBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  mockBadge: {
-    backgroundColor: '#8E8E93',
-  },
-  firebaseBadge: {
-    backgroundColor: Colors.light.primary,
-  },
-  dbBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#FFF',
-    marginLeft: 4,
   },
   sectionCard: {
     backgroundColor: Colors.light.cardBackground,
