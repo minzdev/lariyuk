@@ -63,6 +63,8 @@ export const useTracking = () => {
   const lastAnnouncedDistanceRef = useRef<number>(0);
   const durationRef = useRef<number>(0);
   const paceRef = useRef<number>(0);
+  const isTrackingRef = useRef<boolean>(false);
+  const isPausedRef = useRef<boolean>(false);
 
   const checkAndSpeakProgress = (currentDistance: number) => {
     const currentKm = Math.floor(currentDistance);
@@ -200,7 +202,7 @@ export const useTracking = () => {
 
   // Handle new location update from GPS
   const handleLocationUpdate = (location: Location.LocationObject) => {
-    if (isPaused) return;
+    if (isPausedRef.current) return;
 
     const { latitude, longitude, accuracy } = location.coords;
     setGpsAccuracy(accuracy ?? null);
@@ -213,7 +215,7 @@ export const useTracking = () => {
 
     setCurrentLocation(newPoint);
 
-    if (isTracking && lastLocationRef.current) {
+    if (isTrackingRef.current && lastLocationRef.current) {
       // Calculate distance from last point
       const delta = calculateDistance(
         lastLocationRef.current.latitude,
@@ -232,7 +234,7 @@ export const useTracking = () => {
         lastLocationRef.current = newPoint;
         checkAndSpeakProgress(newDistance);
       }
-    } else if (isTracking) {
+    } else if (isTrackingRef.current) {
       setRouteCoordinates([newPoint]);
       lastLocationRef.current = newPoint;
     }
@@ -261,7 +263,9 @@ export const useTracking = () => {
     }
 
     setIsTracking(true);
+    isTrackingRef.current = true;
     setIsPaused(false);
+    isPausedRef.current = false;
     setDuration(0);
     setDistance(0);
     setPace(0);
@@ -279,6 +283,7 @@ export const useTracking = () => {
     // Start Timer
     clearTimer();
     timerRef.current = setInterval(() => {
+      if (isPausedRef.current) return;
       setDuration((prev) => {
         const nextDuration = prev + 1;
         durationRef.current = nextDuration;
@@ -314,7 +319,7 @@ export const useTracking = () => {
     let angle = 0;
 
     simulationIntervalRef.current = setInterval(() => {
-      if (isPaused) return;
+      if (isPausedRef.current) return;
 
       // Running speed: approx 3 meters/second (~11km/h)
       // 1 degree latitude = 111,000 meters
@@ -358,11 +363,13 @@ export const useTracking = () => {
   // Pause
   const pauseTracking = () => {
     setIsPaused(true);
+    isPausedRef.current = true;
   };
 
   // Resume
   const resumeTracking = () => {
     setIsPaused(false);
+    isPausedRef.current = false;
   };
 
   // Stop tracking and save to storage
@@ -372,7 +379,9 @@ export const useTracking = () => {
     stopLocationWatcher();
     
     setIsTracking(false);
+    isTrackingRef.current = false;
     setIsPaused(false);
+    isPausedRef.current = false;
 
     if (distanceRef.current < 0.05 && duration < 10) {
       // Too short to record, cancel
@@ -415,7 +424,9 @@ export const useTracking = () => {
     stopLocationWatcher();
     
     setIsTracking(false);
+    isTrackingRef.current = false;
     setIsPaused(false);
+    isPausedRef.current = false;
     setDuration(0);
     setDistance(0);
     setPace(0);
