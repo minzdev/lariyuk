@@ -109,25 +109,25 @@ export default function ActivitiesScreen() {
           style={[styles.tabButton, activeFilter === 'all' && styles.activeTabButton]}
           onPress={() => handleFilterChange('all')}
         >
-          <Text style={[styles.tabText, activeFilter === 'all' && styles.activeTabText]}>Semua</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit={true} style={[styles.tabText, activeFilter === 'all' && styles.activeTabText]}>Semua</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.tabButton, activeFilter === 'run' && styles.activeTabButton]}
           onPress={() => handleFilterChange('run')}
         >
-          <Text style={[styles.tabText, activeFilter === 'run' && styles.activeTabText]}>Lari</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit={true} style={[styles.tabText, activeFilter === 'run' && styles.activeTabText]}>Lari</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.tabButton, activeFilter === 'walk' && styles.activeTabButton]}
           onPress={() => handleFilterChange('walk')}
         >
-          <Text style={[styles.tabText, activeFilter === 'walk' && styles.activeTabText]}>Jalan</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit={true} style={[styles.tabText, activeFilter === 'walk' && styles.activeTabText]}>Jalan</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.tabButton, activeFilter === 'bike' && styles.activeTabButton]}
           onPress={() => handleFilterChange('bike')}
         >
-          <Text style={[styles.tabText, activeFilter === 'bike' && styles.activeTabText]}>Sepeda</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit={true} style={[styles.tabText, activeFilter === 'bike' && styles.activeTabText]}>Sepeda</Text>
         </TouchableOpacity>
       </View>
 

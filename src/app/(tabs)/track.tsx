@@ -106,22 +106,22 @@ export default function TrackScreen() {
       {/* Main Stats Display Panel */}
       <View style={styles.statsContainer}>
         {/* Massive Timer */}
-        <Text style={styles.timerText}>{formatDuration(duration)}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit={true} style={styles.timerText}>{formatDuration(duration)}</Text>
         <Text style={styles.timerLabel}>DURASI</Text>
 
         {/* Dashboard Grid */}
         <View style={styles.gridRow}>
           <View style={styles.gridCol}>
-            <Text style={styles.gridVal}>{distance.toFixed(2)}</Text>
-            <Text style={styles.gridLabel}>JARAK (km)</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit={true} style={styles.gridVal}>{distance.toFixed(2)}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit={true} style={styles.gridLabel}>JARAK (km)</Text>
           </View>
           <View style={styles.gridCol}>
-            <Text style={styles.gridVal}>{formatPace(pace)}</Text>
-            <Text style={styles.gridLabel}>PACE (/km)</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit={true} style={styles.gridVal}>{formatPace(pace)}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit={true} style={styles.gridLabel}>PACE (/km)</Text>
           </View>
           <View style={styles.gridCol}>
-            <Text style={styles.gridVal}>{calories}</Text>
-            <Text style={styles.gridLabel}>KALORI (kkal)</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit={true} style={styles.gridVal}>{calories}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit={true} style={styles.gridLabel}>KALORI (kkal)</Text>
           </View>
         </View>
       </View>
