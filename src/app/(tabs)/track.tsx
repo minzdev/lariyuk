@@ -31,8 +31,6 @@ export default function TrackScreen() {
     pace,
     calories,
     gpsSignal,
-    isSimulating,
-    setIsSimulating,
     startTracking,
     pauseTracking,
     resumeTracking,
@@ -103,17 +101,6 @@ export default function TrackScreen() {
           <Text style={styles.gpsText}>{getSignalText()}</Text>
         </View>
 
-        {!isTracking && (
-          <View style={styles.simContainer}>
-            <Text style={styles.simText}>Simulasi Lari (Demo):</Text>
-            <Switch
-              value={isSimulating}
-              onValueChange={setIsSimulating}
-              trackColor={{ false: '#767577', true: Colors.light.primary + '50' }}
-              thumbColor={isSimulating ? Colors.light.primary : '#f4f3f4'}
-            />
-          </View>
-        )}
       </View>
 
       {/* Main Stats Display Panel */}
@@ -150,8 +137,8 @@ export default function TrackScreen() {
             latitudeDelta: 0.005,
             longitudeDelta: 0.005
           }}
-          showsUserLocation={!isSimulating && currentLocation !== null}
-          showsMyLocationButton={!isSimulating && currentLocation !== null}
+          showsUserLocation={currentLocation !== null}
+          showsMyLocationButton={currentLocation !== null}
         >
           {/* Breadcrumb path */}
           {routeCoordinates.length > 1 && (

@@ -50,13 +50,9 @@ export const useTracking = () => {
   const [calories, setCalories] = useState(0);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
   
-  // Simulation config
-  const [isSimulating, setIsSimulating] = useState(false);
-
   // Refs for tracking mutable states inside intervals
   const locationSubscription = useRef<Location.LocationSubscription | null>(null);
   const timerRef = useRef<any>(null);
-  const simulationIntervalRef = useRef<any>(null);
   const routeRef = useRef<LatLng[]>([]);
   const lastLocationRef = useRef<LatLng | null>(null);
   const distanceRef = useRef<number>(0);
@@ -126,7 +122,6 @@ export const useTracking = () => {
       subscription.remove();
       stopLocationWatcher();
       clearTimer();
-      clearSimulation();
     };
   }, []);
 
@@ -148,13 +143,6 @@ export const useTracking = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
-    }
-  }
-
-  function clearSimulation() {
-    if (simulationIntervalRef.current) {
-      clearInterval(simulationIntervalRef.current);
-      simulationIntervalRef.current = null;
     }
   }
 
@@ -302,63 +290,12 @@ export const useTracking = () => {
       });
     }, 1000);
 
-    // GPS Watch or Simulation
-    if (isSimulating) {
-      startSimulating(initialPoint);
-    } else {
-      await startLocationWatcher();
-      await startBackgroundLocationWatcher();
-    }
+    // GPS Watch
+    await startLocationWatcher();
+    await startBackgroundLocationWatcher();
   };
 
-  // Start tracking simulation (adds simulated running path in a circle/wiggly line)
-  const startSimulating = (startPoint: LatLng) => {
-    clearSimulation();
-    let lat = startPoint.latitude;
-    let lng = startPoint.longitude;
-    let angle = 0;
 
-    simulationIntervalRef.current = setInterval(() => {
-      if (isPausedRef.current) return;
-
-      // Running speed: approx 3 meters/second (~11km/h)
-      // 1 degree latitude = 111,000 meters
-      // Add small wiggle to simulate path
-      angle += 0.15;
-      const speed = 0.00003; // Lat/Lng step size
-      const dLat = speed * Math.cos(angle) + (Math.random() - 0.5) * 0.000005;
-      const dLng = speed * Math.sin(angle) + (Math.random() - 0.5) * 0.000005;
-      
-      lat += dLat;
-      lng += dLng;
-
-      const simLoc: LatLng = {
-        latitude: lat,
-        longitude: lng,
-        timestamp: getNowTimestamp()
-      };
-
-      setCurrentLocation(simLoc);
-
-      // Add to distance
-      if (lastLocationRef.current) {
-        const delta = calculateDistance(
-          lastLocationRef.current.latitude,
-          lastLocationRef.current.longitude,
-          simLoc.latitude,
-          simLoc.longitude
-        );
-        const newDistance = distanceRef.current + delta;
-        distanceRef.current = newDistance;
-        setDistance(newDistance);
-        checkAndSpeakProgress(newDistance);
-      }
-
-      setRouteCoordinates((prev) => [...prev, simLoc]);
-      lastLocationRef.current = simLoc;
-      setGpsAccuracy(3); // Perfect simulated signal
-    }, 1000);
-  };
 
   // Pause
   const pauseTracking = () => {
@@ -375,7 +312,6 @@ export const useTracking = () => {
   // Stop tracking and save to storage
   const stopTracking = async (type: 'run' | 'walk' | 'bike' = 'run', customTitle?: string): Promise<Activity | null> => {
     clearTimer();
-    clearSimulation();
     stopLocationWatcher();
     
     setIsTracking(false);
@@ -420,7 +356,6 @@ export const useTracking = () => {
   // Reset tracking stats
   const resetTracking = () => {
     clearTimer();
-    clearSimulation();
     stopLocationWatcher();
     
     setIsTracking(false);
@@ -457,8 +392,6 @@ export const useTracking = () => {
     calories,
     gpsAccuracy,
     gpsSignal: getGpsSignal(),
-    isSimulating,
-    setIsSimulating,
     startTracking,
     pauseTracking,
     resumeTracking,
